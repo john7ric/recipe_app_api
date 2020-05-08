@@ -15,6 +15,15 @@ class UserManager(BaseUserManager):
         user.save(using=self.db)
         return user
 
+    def create_superuser(self, email, password=None, **extra_fields):
+        """ method to create a super user """
+        user = self.model(email=self.normalize_email(email))
+        user.set_password(password)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        return user
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     """ Customer user model with email as username field"""
