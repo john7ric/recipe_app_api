@@ -7,6 +7,28 @@ from core import models
 class UserAdmin(BaseUserAdmin):
     ordering = ['id']
     list_display = ['email', 'name']
+    fieldsets = (
+        (None, {
+            'fields': (
+                'email', 'password',
+            ),
+        }),
+        ('Personal Info', {
+            'fields': (
+                'name',
+            ),
+        }),
+        ('Permissions', {
+            'fields': (
+                'is_active', 'is_superuser',
+            ),
+        }),
+        ('Important dates', {
+            'fields': (
+                'last_login',
+            ),
+        }),
+    )
 
 
 admin.site.register(models.User, UserAdmin)
