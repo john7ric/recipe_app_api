@@ -8,15 +8,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ('email','name')
-        extra_kwargs : {
-            'password' : {
-                'write_only' : True,
-                'min_length' : 5,
-            }
-        }
+        fields = ('email', 'name')
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
 
     def create(self, validated_data):
-         """ overriding create method to create a user with encryted password """
-         user = get_user_model().objects.create_user(**validated_data)
-         return user
+        """ overriding create method to
+        create a user with encryted password """
+        user = get_user_model().objects.create_user(**validated_data)
+        return user
