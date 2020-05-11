@@ -30,8 +30,8 @@ class PublicUserAPITest(TestCase):
         res = self.client.post(CREATE_USER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        # user = get_user_model().objects.get(**res.data)
-        # self.assertTrue(user.check_password(payload['password']))
+        user = get_user_model().objects.get(**res.data)
+        self.assertTrue(user.check_password(payload['password']))
         self.assertNotIn('password', res.data)
 
     def test_create_existing_user(self):
