@@ -20,7 +20,7 @@ class PublicUserAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    def test_create_valid_user_sucess(self):
+    def test_create_valid_user_success(self):
         """ test user creation with valid payload"""
         payload = {
             'name' : 'Ashwati Nair',
@@ -37,13 +37,12 @@ class PublicUserAPITest(TestCase):
 
     def test_create_existing_user(self):
         """ test creating already exiting user returns error """
-        payload = {'email' : 'john7ric@mail.com', 'password' : '123456'}
+        payload = {'email' : 'john7ric@mail.com', 'name' : 'Test Name', 'password' : '123456'}
         create_user(**payload)
 
         res = self.client.post(CREATE_USER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self
 
     def test_password_too_short(self):
         """ test if request fails if password is less than 5 chars """
@@ -51,7 +50,7 @@ class PublicUserAPITest(TestCase):
         res = self.client.post(CREATE_USER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        user_exits = get_user_model().objects.filter(
+        user_exists = get_user_model().objects.filter(
             email = payload['email']
         ).exists()
 
