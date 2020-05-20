@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """ serializer for user model"""
 
     class Meta:
@@ -16,6 +16,15 @@ class UserCreateSerializer(serializers.ModelSerializer):
         """ overriding create method to
         create a user with encryted password """
         user = get_user_model().objects.create_user(**validated_data)
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+
+        user.save()
         return user
 
 
