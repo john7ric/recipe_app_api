@@ -6,7 +6,9 @@ from core.models import Tag
 from recipe.serializers import TagSerializer
 
 
-class TagListViewSet(viewsets.ModelViewSet, mixins.ListModelMixin):
+class TagListViewSet(viewsets.ModelViewSet,
+                     mixins.CreateModelMixin,
+                     mixins.ListModelMixin):
     """
     Viewset for listing the tags
     """
@@ -18,3 +20,6 @@ class TagListViewSet(viewsets.ModelViewSet, mixins.ListModelMixin):
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
