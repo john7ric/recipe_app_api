@@ -60,7 +60,8 @@ class TestPrivateTagsAPI(TestCase):
         """
         user2 = get_user_model().objects.create(
             email='lollslsl@hh.com',
-            password='jddkjdj@1k1k'
+            password='jddkjdj@1k1k',
+            name='Test User2'
         )
         Tag.objects.create(user=user2, name='Vegan')
         tag = Tag.objects.create(user=self.user, name='Non Veg')
