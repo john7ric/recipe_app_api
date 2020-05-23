@@ -25,7 +25,9 @@ class TagListViewSet(viewsets.ModelViewSet,
         serializer.save(user=self.request.user)
 
 
-class IngrediantViewSet(viewsets.ModelViewSet, mixins.ListModelMixin):
+class IngrediantViewSet(viewsets.ModelViewSet,
+                        mixins.CreateModelMixin,
+                        mixins.ListModelMixin):
     """
     View set for managing Ingrediants
     """
@@ -38,3 +40,6 @@ class IngrediantViewSet(viewsets.ModelViewSet, mixins.ListModelMixin):
         queryset = Ingrediant.objects.filter(
             user=self.request.user).order_by('-name')
         return queryset
+
+    def perform_create(self, serializer):
+        return serializer.save(user=self.request.user)
