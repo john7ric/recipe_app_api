@@ -127,3 +127,64 @@ class PrivateRecipeAPITests(TestCase):
         serializer = RecipeDetailSerializer(recipe)
 
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_basic_recipe(self):
+        """
+        Tewst for creating a basic recipe
+        """
+        payload = {
+            'title': 'Mushroom Masala',
+            'time_minutes': 20,
+            'price': 5.00
+        }
+        res = self.client.post(RECIPE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipe = Recipe.objects.get(id=res.data['id'])
+
+        for key in payload.keys():
+            self.assertEqual(payload[key], getattr(recipe, key))
+
+    def test_create_recipe_with_tags(self):
+        """
+        test for creating recipe with tags
+        """
+        tag1 = sample_tag(user=self.user, name='Dessert')
+        tag2 = sample_tag(user=self.user, name='Ice Cream')
+        payload = {
+            'title': 'Butterscotch Choconut',
+            'time_minutes': 15,
+            'price': 5.00,
+            'tags': [tag1.id, tag2.id]
+        }
+
+        res = self.client.post(RECIPE_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipe = Recipe.objects.get(id=res.data['id'])
+        tags = recipe.tags.all()
+
+        self.assertEqual(len(tags), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    def test_create_recipe_with_ingrediants(self):
+        """
+        Test for creating recipe with ingrediants
+        """
+        ingrediant1 = sample_ingrediant(user=self.user, name='Nuts')
+        ingrediant2 = sample_ingrediant(user=self.user, name='Ice cream')
+        payload = {
+            'title': 'Butterscotch Choconut',
+            'time_minutes': 5,
+            'price': 5.00,
+            'ingrediants': [ingrediant1.id, ingrediant2.id]
+        }
+
+        res = self.client.post(RECIPE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipe = Recipe.objects.get(id=res.data['id'])
+
+        ingrediants = recipe.ingrediants.all()
+        self.assertEqual(len(ingrediants), 2)
+        self.assertIn(ingrediant1, ingrediants)
+        self.assertIn(ingrediant2, ingrediants)
