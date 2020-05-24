@@ -188,3 +188,57 @@ class PrivateRecipeAPITests(TestCase):
         self.assertEqual(len(ingrediants), 2)
         self.assertIn(ingrediant1, ingrediants)
         self.assertIn(ingrediant2, ingrediants)
+
+    def test_recipe_partial_update(self):
+        """
+        test for partial update for recipe object
+        """
+
+        recipe = sample_recipe(user=self.user)
+        tag1 = sample_tag(user=self.user, name='Dessert')
+        tag2 = sample_tag(user=self.user, name='Cake')
+        payload = {
+            'title': 'Butter Cake',
+            'time_minutes': 15,
+            'price': 15.00
+        }
+        recipe.tags.add(tag1)
+        recipe.tags.add(tag2)
+
+        url = detail_url(recipe.id)
+        res = self.client.patch(url, payload)
+        recipe.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(payload['title'], recipe.title)
+        self.assertEqual(payload['time_minutes'], recipe.time_minutes)
+        self.assertEqual(payload['price'], recipe.price)
+        tags = recipe.tags.all()
+        self.assertEqual(len(tags), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    def test_update_recipe_put(self):
+        """
+        Test put requests on recipe objects
+        """
+        recipe = sample_recipe(user=self.user)
+        recipe.tags.add(sample_tag(user=self.user, name='Main Course'))
+        recipe.tags.add(sample_tag(user=self.user, name='Chicken Dish'))
+
+        payload = {
+            'title': 'Chicken Tikka',
+            'time_minutes': 20,
+            'price': 5.00,
+            'link': 'www.linkedin.in/john7ric',
+        }
+        url = detail_url(recipe.id)
+        res = self.client.put(url, payload)
+
+        recipe.refresh_from_db()
+        tags = recipe.tags.all()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(payload['title'], recipe.title)
+        self.assertEqual(payload['time_minutes'], recipe.time_minutes)
+        self.assertEqual(payload['price'], recipe.price)
+        self.assertEqual(payload['link'], recipe.link)
+        self.assertEqual(len(tags), 0)
