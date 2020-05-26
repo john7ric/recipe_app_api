@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import TestCase
@@ -6,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import Recipe, Tag, Ingrediant
+from core import models
 from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
 RECIPE_URL = reverse('recipe:recipe-list')
@@ -242,3 +244,28 @@ class PrivateRecipeAPITests(TestCase):
         self.assertEqual(payload['price'], recipe.price)
         self.assertEqual(payload['link'], recipe.link)
         self.assertEqual(len(tags), 0)
+
+    def test_recipe_file_name(self):
+        """
+        test if a random file name is used to store imaged rather than
+        original filename
+        """
+        with patch('uuid.uuid4') as mocked_uuid:
+            uuid = 'test-uuid'
+            mocked_uuid.return_value = uuid
+            file_path = models.recipe_image_file_path(None, 'my_image.jpg')
+            expected_path = f'/uploads/recipe/{uuid}.jpg'
+
+            self.assertEqual(file_path, expected_path)
+
+    @patch('uuid.uuid4')
+    def test_recipe_file_name_decorator(self, mocked_uuid):
+        """
+        Test if filename store uses unique random, with patch decorator
+        """
+        uuid = 'test-uuid'
+        mocked_uuid.return_value = uuid
+        file_path = models.recipe_image_file_path(None, 'my_image.jpg')
+        expected_path = f'/uploads/recipe/{uuid}.jpg'
+
+        self.assertEqual(file_path, expected_path)
