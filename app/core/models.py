@@ -12,7 +12,8 @@ def recipe_image_file_path(instance, file_name):
     helper method for generating filename for recipe image
     """
     ext = file_name.split('.')[-1]
-    return os.path.join('/uploads/recipe', f'{uuid.uuid4()}.{ext}')
+    filename = f'{uuid.uuid4()}.{ext}'
+    return os.path.join('uploads/recipe', filename)
 
 
 class UserManager(BaseUserManager):
