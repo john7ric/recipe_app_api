@@ -312,8 +312,6 @@ class RecipeImageUploadTests(TransactionTestCase):
             ntf.seek(0)
 
             res = self.client.post(url, {'image': ntf}, format='multipart')
-            print(f'===============> url ======> {url}')
-            print(f'===============> res. ======> {res}')
             self.recipe.refresh_from_db()
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertIn('image', res.data)
