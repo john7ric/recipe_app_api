@@ -54,8 +54,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = RecipeSerializer
 
+    def _params_to_int_list(self, qs):
+        """
+        Helper funtion to parse query params to list of ints
+        """
+        return [int(q_id) for q_id in qs.split(',')]
+
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user).order_by('-id')
+        query_set = self.queryset
+        tags = self.request.query_params.get('tags')
+        ingrediants = self.request.query_params.get('ingrediants')
+        if tags:
+            tag_ids = self._params_to_int_list(tags)
+            query_set = query_set.filter(tags__id__in=tag_ids)
+        if ingrediants:
+            ing_ids = self._params_to_int_list(ingrediants)
+            query_set = query_set.filter(ingrediants__id__in=ing_ids)
+
+        return query_set.filter(user=self.request.user).order_by('-id')
 
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)

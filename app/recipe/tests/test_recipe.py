@@ -6,7 +6,7 @@ from PIL import Image
 from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -283,7 +283,7 @@ class PrivateRecipeAPITests(TestCase):
         self.assertEqual(file_path, expected_path)
 
 
-class RecipeImageUploadTests(TransactionTestCase):
+class RecipeImageUploadTests(TestCase):
     """
     Test cases for image upload for recipe
     """
@@ -330,3 +330,50 @@ class RecipeImageUploadTests(TransactionTestCase):
         self.recipe.refresh_from_db()
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_recipe_filter_with_tags(self):
+        """
+        Test if recipe filter is working as expected with filters
+        """
+        recipe_1 = sample_recipe(user=self.user, title='Veg Biryani')
+        recipe_2 = sample_recipe(user=self.user, title='Guava Milk Shake')
+        tag_1 = sample_tag(user=self.user, name='Vegetarian')
+        tag_2 = sample_tag(user=self.user, name='Vegan')
+        recipe_1.tags.add(tag_1)
+        recipe_2.tags.add(tag_2)
+        recipe_3 = sample_recipe(user=self.user, title='Chicken Shawaya')
+
+        res = self.client.get(RECIPE_URL, {'tags': f'{tag_1.id},{tag_2.id}'})
+
+        serializer_1 = RecipeSerializer(recipe_1)
+        serializer_2 = RecipeSerializer(recipe_2)
+        serializer_3 = RecipeSerializer(recipe_3)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(serializer_1.data, res.data)
+        self.assertIn(serializer_2.data, res.data)
+        self.assertNotIn(serializer_3.data, res.data)
+
+    def test_recipe_filter_with_ingrediants(self):
+        """
+        Test filtering of recipes with its ingrediants
+        """
+        recipe_1 = sample_recipe(user=self.user, title='Veg Biryani')
+        recipe_2 = sample_recipe(user=self.user, title='Guava Milk Shake')
+        ingrediant_1 = sample_ingrediant(user=self.user, name='Carrot')
+        ingrediant_2 = sample_ingrediant(user=self.user, name='Guava')
+        recipe_3 = sample_recipe(user=self.user)
+        recipe_1.ingrediants.add(ingrediant_1)
+        recipe_2.ingrediants.add(ingrediant_2)
+
+        res = self.client.get(
+            RECIPE_URL,
+            {'ingrediants': f'{ingrediant_1.id},{ingrediant_2.id}'}
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        serializer_1 = RecipeSerializer(recipe_1)
+        serializer_2 = RecipeSerializer(recipe_2)
+        serializer_3 = RecipeSerializer(recipe_3)
+        self.assertIn(serializer_1.data, res.data)
+        self.assertIn(serializer_2.data, res.data)
+        self.assertNotIn(serializer_3.data, res.data)
