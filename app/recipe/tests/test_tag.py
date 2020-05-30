@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from core.models import Tag
+from core.models import Tag, Recipe
 from recipe.serializers import TagSerializer
 
 TAGS_URL = reverse('recipe:tag-list')
@@ -92,3 +92,57 @@ class TestPrivateTagsAPI(TestCase):
         res = self.client.post(TAGS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retreived_tags_assigned_to_recipes(self):
+        """
+        Test only the tags assigned to recipes are retreived
+        """
+        recipe = Recipe.objects.create(
+            user=self.user,
+            title='Chicken Soup',
+            time_minutes=10,
+            price=5.00
+        )
+        tag_1 = Tag.objects.create(user=self.user, name='Soup')
+        tag_2 = Tag.objects.create(user=self.user, name='Chicken')
+
+        recipe.tags.add(tag_1)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        serializer_1 = TagSerializer(tag_1)
+        serializer_2 = TagSerializer(tag_2)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertIn(serializer_1.data, res.data)
+        self.assertNotIn(serializer_2.data, res.data)
+
+    def test_retrieve_tags_assignes_unique(self):
+        """
+        Test tags retrieved are unique and not duplicated
+        """
+        recipe_1 = Recipe.objects.create(
+            user=self.user,
+            title='Chicken Soup',
+            time_minutes=10,
+            price=5.00
+        )
+        recipe_2 = Recipe.objects.create(
+            user=self.user,
+            title='Veg Soup',
+            time_minutes=10,
+            price=5.00
+        )
+        tag_1 = Tag.objects.create(user=self.user, name='Soup')
+        Tag.objects.create(user=self.user, name='Soup')
+
+        recipe_1.tags.add(tag_1)
+        recipe_2.tags.add(tag_1)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        serializer_1 = TagSerializer(tag_1)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertIn(serializer_1.data, res.data)

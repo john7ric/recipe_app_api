@@ -22,7 +22,13 @@ class BaseRecipeAttrViewSet(viewsets.ModelViewSet,
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user).order_by('-name')
+        is_assigned_only = bool(
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        query_set = self.queryset
+        if is_assigned_only:
+            query_set = query_set.filter(recipe__isnull=False).distinct()
+        return query_set.filter(user=self.request.user).order_by('-name')
 
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)

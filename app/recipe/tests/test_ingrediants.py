@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Ingrediant
+from core.models import Ingrediant, Recipe
 from recipe.serializers import IngrediantSerializer
 
 INGREDIANTS_URL = reverse('recipe:ingrediant-list')
@@ -104,3 +104,55 @@ class PrivateIngrediantsAPITests(TestCase):
         res = self.client.post(INGREDIANTS_URL, {'name': ''})
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_list_ingrediants_assigned_only(self):
+        """
+        Test only the ingrediants assigned to a recipe are returned
+        """
+        recipe = Recipe.objects.create(
+            user=self.user,
+            title='Sample recipe',
+            time_minutes=10,
+            price=5.00
+        )
+        ingrediant_1 = Ingrediant.objects.create(user=self.user, name='ing_1')
+        ingrediant_2 = Ingrediant.objects.create(user=self.user, name='ing_2')
+        recipe.ingrediants.add(ingrediant_1)
+        serializer_1 = IngrediantSerializer(ingrediant_1)
+        serializer_2 = IngrediantSerializer(ingrediant_2)
+
+        res = self.client.get(INGREDIANTS_URL, {'assigned_only': 1})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertIn(serializer_1.data, res.data)
+        self.assertNotIn(serializer_2.data, res.data)
+
+    def test_list_ingrediants_assigned_unique(self):
+        """
+        Test the ingrediants returned are assigned to recipes
+        and are also unique
+        """
+        recipe_1 = Recipe.objects.create(
+            user=self.user,
+            title='Recipe 1',
+            time_minutes=10,
+            price=5.00
+        )
+        recipe_2 = Recipe.objects.create(
+            user=self.user,
+            title='Recipe 2',
+            time_minutes='15',
+            price=8
+        )
+        ingrediant_1 = Ingrediant.objects.create(user=self.user, name='Ing_1')
+        Ingrediant.objects.create(user=self.user, name='Img_1')
+        recipe_1.ingrediants.add(ingrediant_1)
+        recipe_2.ingrediants.add(ingrediant_1)
+        serializer_1 = IngrediantSerializer(ingrediant_1)
+
+        res = self.client.get(INGREDIANTS_URL, {'assigned_only': 1})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(serializer_1.data, res.data)
+        self.assertEqual(len(res.data), 1)

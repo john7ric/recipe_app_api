@@ -25,7 +25,7 @@ SECRET_KEY = 'x&&0e8)^3(y)yxdxhw$zv*p)7&eh60*@jx+5ugxb$=ng&d!jq!'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.','l8709.local','127.0.0.1',]
+ALLOWED_HOSTS = []
 
 
 
